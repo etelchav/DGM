@@ -1,0 +1,247 @@
+Perfecto. Aquí tenés la **documentación técnica y funcional** del script, **lista para uso institucional** (DGM / MINAE).
+Es clara, defendible y usable tanto por **TI** como por **usuarios técnicos GIS**.
+
+---
+
+# 📘 DOCUMENTACIÓN TÉCNICA
+
+## ETL_AGOL_ADDAX_Upsert CM_ATRIBUTOS.py
+
+---
+
+## 1. Identificación del script
+
+* **Nombre:** `ETL_AGOL_ADDAX_Upsert CM_ATRIBUTOS.py`
+* **Tipo:** ETL (Extract – Transform – Load)
+* **Lenguaje:** Python (ArcPy + Pandas)
+* **Entorno:** ArcGIS Pro (`arcgispro-py3`)
+* **Responsable funcional:** Dirección de Geología y Minas (DGM)
+* **Uso principal:** Actualización controlada de atributos mineros en la tabla `CM_ATRIBUTOS`
+
+---
+
+## 2. Objetivo del script
+
+Ejecutar un proceso **controlado y auditable** para:
+
+* Leer atributos desde un **Excel fuente**
+* Normalizar y validar la clave `EXPEDIENTE_KEY`
+* Detectar **duplicados en el origen**
+* Actualizar o insertar registros en `CM_ATRIBUTOS` (**UPSERT**)
+* Generar **reportes técnicos y ejecutivos**
+* Detener el proceso de forma **segura** si el origen es inconsistente
+
+---
+
+## 3. Alcance y limitaciones
+
+### ✔️ El script **SÍ hace**
+
+* Lee Excel (`.xlsx`)
+* Normaliza texto (mayúsculas, sin tildes)
+* Detecta duplicados por expediente
+* Genera reportes CSV y Excel
+* Inserta y actualiza atributos
+* Marca registros fuera del reporte como `SIN_DATOS`
+* Registra métricas por corrida
+
+### ❌ El script **NO hace**
+
+* No modifica geometría
+* No elimina registros
+* No publica capas en AGOL
+* No corrige duplicados automáticamente
+* No ejecuta joins
+* No consume API (por ahora)
+
+---
+
+## 4. Flujo general del proceso
+
+1. Lectura del Excel fuente
+2. Conversión a tabla staging temporal
+3. Identificación del campo Expediente
+4. Cálculo de `EXPEDIENTE_KEY`
+5. Conteo y validación de duplicados
+6. **Si hay duplicados → fallo controlado**
+7. **Si no hay duplicados → UPSERT**
+8. Generación de reportes
+9. Mensajes finales en ArcGIS Pro
+
+---
+
+## 5. Parámetros y configuraciones clave
+
+### 5.1 Fuente de datos
+
+```python
+EXCEL_PATH = r"C:\CatastroMineroC\BaseDatosC\BD_RNM_AGOL.xlsx"
+EXCEL_SHEET_CANDIDATES = ["Hoja1", "Hoja1$"]
+```
+
+* El script prueba las hojas en orden hasta encontrar una válida.
+
+---
+
+### 5.2 Tabla destino
+
+```python
+TARGET_NAME = "CM_ATRIBUTOS"
+FIELD_KEY = "EXPEDIENTE_KEY"
+```
+
+---
+
+### 5.3 Ruta centralizada de reportes
+
+```python
+REPORTES_ETL =
+C:\Users\echavarria\OneDrive - MINAE Costa Rica\
+2-REPORTES\Reportes_GIS\Rep_ETL
+```
+
+En esta carpeta se generan **todas las salidas** del ETL.
+
+---
+
+### 5.4 Reglas de negocio
+
+```python
+FAIL_IF_SOURCE_HAS_DUPLICATES = True
+VALOR_SIN_DATOS = "SIN_DATOS"
+```
+
+* Si hay duplicados en el Excel → el ETL **se detiene**
+* Registros no presentes en el reporte → `Estado = SIN_DATOS`
+
+---
+
+## 6. Salidas del script
+
+### 6.1 Log técnico principal (CSV)
+
+**Siempre se genera**
+
+```
+LOG_upsert_CM_ATRIBUTOS_YYYYMMDD_HHMMSS.csv
+```
+
+Uso:
+
+* Auditoría técnica
+* Trazabilidad
+* Soporte TI
+
+---
+
+### 6.2 Log de duplicados (CSV – condicional)
+
+Se genera **solo si hay duplicados** en el Excel:
+
+```
+LOG_DUPLICADOS_ORIGEN_YYYYMMDD_HHMMSS.csv
+```
+
+Contenido:
+
+* `EXPEDIENTE_KEY`
+* `CANTIDAD`
+
+---
+
+### 6.3 Excel Resumen del ETL (XLSX)
+
+**Se genera siempre**, incluso cuando el ETL se detiene.
+
+```
+RESUMEN_ETL_CM_ATRIBUTOS_YYYYMMDD_HHMMSS.xlsx
+```
+
+#### Hoja: `RESUMEN`
+
+Incluye:
+
+* Fecha de ejecución
+* Estado del ETL (OK / DETENIDO_POR_DUPLICADOS)
+* Total de registros origen
+* Total previo en CM_ATRIBUTOS
+* Cantidad de duplicados
+* Updates / Inserts / Skips
+
+Uso:
+
+* Jefaturas
+* Control institucional
+* Evidencia de proceso
+
+---
+
+## 7. Manejo de errores (fallo controlado)
+
+### Caso: Excel con duplicados
+
+El script:
+
+* ❌ NO ejecuta UPSERT
+* ✔️ Genera CSV de duplicados
+* ✔️ Genera Excel resumen
+* ✔️ Muestra advertencias claras en ArcGIS Pro
+* ✔️ Finaliza con `SystemExit` (sin crash)
+
+Mensaje típico en pantalla:
+
+```
+ETL DETENIDO – ORIGEN CON DUPLICADOS
+Expedientes duplicados: 12
+Detalle en: LOG_DUPLICADOS_ORIGEN_2026xxxx.csv
+```
+
+---
+
+## 8. Campos técnicos agregados a CM_ATRIBUTOS
+
+| Campo               | Tipo  | Descripción               |
+| ------------------- | ----- | ------------------------- |
+| EXPEDIENTE_KEY      | TEXT  | Clave normalizada         |
+| Fecha_Actualizacion | DATE  | Última actualización real |
+| EN_REPORTE          | SHORT | 1 si vino en el Excel     |
+| FECHA_REPORTE       | DATE  | Fecha de la corrida       |
+
+---
+
+## 9. Buenas prácticas de uso
+
+* Ejecutar **antes de publicar a AGOL**
+* Revisar siempre el **Excel resumen**
+* No desactivar la validación de duplicados sin criterio técnico
+* Mantener el Excel fuente limpio
+* Usar este ETL junto con el script de **Auditoría Geometría–Atributos**
+
+---
+
+## 10. Evoluciones previstas (no incluidas)
+
+* Consumo desde API Addax
+* Deduplicación automática por reglas
+* Envío automático de reportes por correo
+* Integración con Power BI
+* Modo simulación (`DRY_RUN`)
+
+---
+
+## 11. Estado del script
+
+✔️ Estable
+✔️ Auditable
+✔️ Reproducible
+✔️ Apto para entorno institucional
+
+---
+
+Si querés, en el siguiente paso puedo:
+
+* convertir esta documentación en **PDF oficial**
+* generar una **versión ejecutiva (1 página)**
+* o preparar la **documentación del Auditor de Geometría** para que quede el paquete completo
+
+Decime cómo lo querés presentar.

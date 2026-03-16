@@ -1,0 +1,172 @@
+# 📌 README
+
+## Proyecto Clasificación Automática del Catastro Minero (RNM)
+
+---
+
+## 1. Ubicación Oficial del Script
+
+El script operativo se encuentra en
+
+```
+CDevPythonclasificar_rnm_catastro.py
+```
+
+Este archivo es el ejecutable principal del proceso de clasificación.
+
+---
+
+## 2. Archivos de Trabajo
+
+### Entrada
+
+```
+CCatastroMineroCBaseDatosCBD_RNM_AGOL.xlsx
+```
+
+### Salida generada automáticamente
+
+```
+CCatastroMineroCBaseDatosCBD_RNM_CLASIFICADO.xlsx
+```
+
+El archivo original no se modifica.
+
+---
+
+## 3. Requisitos del Entorno
+
+Verificar en PowerShell
+
+```powershell
+python --version
+pip --version
+python -c import pandas; print(pandas.__version__)
+python -c import openpyxl; print(openpyxl.__version__)
+```
+
+Requisitos
+
+ Python 3.11+
+ pandas
+ openpyxl
+
+---
+
+## 4. Objetivo del Script
+
+Clasificar automáticamente los expedientes del RNM en la columna
+
+```
+GRUPO_CATASTRO
+```
+
+Con los siguientes valores
+
+ ARCHIVADO
+ PERMISO_ESPECIAL
+ METALICO
+ NO_METALICO
+
+Además genera la columna
+
+```
+AREA_KM2
+```
+
+con conversión automática de unidades.
+
+---
+
+## 5. Criterios Técnicos de Clasificación
+
+### ARCHIVADO
+
+Si el ESTADO contiene
+
+ ARCHIV
+ CANCEL
+ DENEG
+ CADUC
+ RENUNC
+ DESIST
+
+---
+
+### PERMISO_ESPECIAL
+
+Si
+
+ El expediente contiene “CDP”
+ O el nombre contiene MUNICIPALIDAD, CONCEJO, ICE o CNE
+
+---
+
+### METALICO (criterio estructural dominante aprobado)
+
+Se clasifica como METALICO si
+
+ El expediente contiene `EXP` o `SUB`
+ Y la CLASE o SUBCLASE contiene `EXPLOR`, `EXPLOT` o `SUB`
+
+Este criterio se adopta porque institucionalmente no existen expedientes EXP-PRI o SUB-PRI de exploración no metálica.
+
+---
+
+### NO_METALICO
+
+Todos los demás casos.
+
+---
+
+## 6. Conversión de Área
+
+Se crea la columna `AREA_KM2`
+
+ Unidad  Conversión       
+ ------  ---------------- 
+ KM2     Valor directo    
+ HA      Área  100       
+ M2      Área  1,000,000 
+
+---
+
+## 7. Ejecución
+
+Abrir PowerShell y ejecutar
+
+```powershell
+python CDevPythonclasificar_rnm_catastro.py
+```
+
+Salida esperada
+
+```
+Resumen por grupo
+ARCHIVADO           xxx
+PERMISO_ESPECIAL    xxx
+METALICO            xxx
+NO_METALICO         xxx
+
+Archivo generado CCatastroMineroCBaseDatosCBD_RNM_CLASIFICADO.xlsx
+```
+
+---
+
+## 8. Validación Posterior
+
+Se recomienda
+
+1. Verificar conteo por grupo.
+2. Revisar muestra de METALICO.
+3. Confirmar coherencia institucional.
+4. Validar permisos especiales.
+
+---
+
+## 9. Buenas Prácticas
+
+ No modificar manualmente el archivo clasificado.
+ Siempre conservar el archivo base original.
+ Documentar cualquier cambio en los criterios de clasificación.
+ Versionar el script si se hacen ajustes.
