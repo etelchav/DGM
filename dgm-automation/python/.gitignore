@@ -1,0 +1,6 @@
+*.gdb
+*.lock
+*.shp
+*.tif
+*.zip
+__pycache__/
