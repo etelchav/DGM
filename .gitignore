@@ -1,0 +1,15 @@
+# Archivos GIS pesados
+*.gdb
+*.lock
+*.shp
+*.dbf
+*.shx
+*.tif
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+
+# entornos
+.env
