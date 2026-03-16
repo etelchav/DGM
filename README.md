@@ -1,4 +1,10 @@
 # Proyecto DGM
 
 Repositorio de scripts GIS y automatización.
->>>>>>> ca76ab3bb6752b55530c0683d84b14c8bad3927c
+
+## Componentes
+
+- dgm-automation → scripts de automatización (Excel, Outlook, Python)
+- dgm-etl-catastro → procesos ETL del catastro minero
+- dgm-gis-tools → herramientas GIS reutilizables
+- dgm-gis-docs → documentación técnica
