@@ -14,4 +14,4 @@ Procesos ETL para la gestión del Catastro Minero.
 
 Ejemplo:
 
-python etl/ETL-EXCEL-CMBASE.py
+##python etl/ETL-EXCEL-CMBASE.py
